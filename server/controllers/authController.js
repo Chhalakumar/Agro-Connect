@@ -138,49 +138,57 @@ const verifyToken = async (req, res) => {
 
     if (!Model) return res.status(400).send({ message: "Invalid type" });
 
+    // Find user/seller by verification token
     const data = await Model.findOne({
       verificationToken: verificationToken,
     }).select(
-      `isVerified verificationTokenExpiry ${type === "seller" && "brandName"}`
+      `isVerified verificationTokenExpiry email name ${type === "seller" ? "brandName" : ""}`
     );
 
-    if (data?.isVerified)
-      return res.status(409).send({ message: "Account already verified" });
-
+    // Token not found
     if (!data) {
-      return res.status(404).send({ message: "Invalid token" });
+      return res.status(404).send({ 
+        message: "Invalid or expired verification link. Please request a new one by trying to login." 
+      });
     }
 
+    // Already verified
+    if (data.isVerified) {
+      return res.status(409).send({ 
+        message: "Account already verified. You can login now." 
+      });
+    }
+
+    // Check if token expired
     const isTokenExpired = data.verificationTokenExpiry < Date.now();
     if (isTokenExpired) {
-      return res.status(403).send({ message: "Token expired" });
+      return res.status(403).send({ 
+        message: "Verification link has expired. Please login again to receive a new verification email." 
+      });
     }
 
-    await Model.findByIdAndUpdate(data._id, { isVerified: true });
+    // Mark as verified and clear verification token
+    await Model.findByIdAndUpdate(data._id, { 
+      isVerified: true,
+      verificationToken: null,
+      verificationTokenExpiry: null
+    });
 
-    // setCookie(
-    //   res,
-    //   `${type}_access_token`,
-    //   generateAccessToken(type, data._id.toString())
-    // );
+    // Generate access token for automatic login
+    const accessToken = generateAccessToken(type, data._id.toString());
 
-    // if (type === "seller") {
-    //   setCookie(res, "brandName", data.brandName);
-    // }
+    console.log(`✅ ${capitalizeFirstLetter(type)} account verified: ${data.email}`);
 
     return res.status(200).send({
-      message: "Account verified successfully",
+      message: `${capitalizeFirstLetter(type)} account verified successfully! You are now logged in.`,
       cookies: {
-        [`${type}_access_token`]: generateAccessToken(
-          type,
-          data._id.toString()
-        ),
+        [`${type}_access_token`]: accessToken,
         ...(type === "seller" && { brandName: data.brandName }),
       },
     });
   } catch (error) {
-    res.status(500).send({ message: "Something went wrong!" });
-    console.log(error);
+    console.error("Verification error:", error);
+    res.status(500).send({ message: "Something went wrong during verification. Please try again." });
   }
 };
 

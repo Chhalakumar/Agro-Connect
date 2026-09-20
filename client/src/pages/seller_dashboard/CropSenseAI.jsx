@@ -60,9 +60,9 @@ const CropSenseAI = () => {
 
                   <div className="md:col-span-6">
                     <InputTag
-                      label={"Altitude (in km)"}
+                      label={"Altitude (in meters)"}
                       type={"number"}
-                      placeholder={"Between 0 and 10 (kilometers)"}
+                      placeholder={"Between 0 and 10000 (meters)"}
                       value={formData.altitude}
                       setFormData={setFormData}
                       toUpdate={"altitude"}

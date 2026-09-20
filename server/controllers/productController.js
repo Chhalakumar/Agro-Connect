@@ -9,29 +9,36 @@ const addProduct = async (req, res) => {
 
     const uploadedImage = req.file;
 
-    console.log(uploadedImage);
+    console.log("📤 Uploaded Image Info:", uploadedImage);
 
     if (!uploadedImage) {
       return res.status(400).json({ message: "No image uploaded" });
     }
 
     try {
+      console.log("📸 Uploading image to Cloudinary...");
       let cloudRes = await uploadImageToCloudinary(uploadedImage.buffer);
       req.body.image = cloudRes.secure_url;
+      console.log("✅ Image URL set:", cloudRes.secure_url);
     } catch (error) {
-      console.log(error);
-      res.status(500).send({
-        message:
-          "There was a problem communicating with Cloudinary during the image upload.",
+      console.error("❌ Cloudinary Error Details:", {
+        message: error.message,
+        code: error.http_code,
+        error: error
+      });
+      return res.status(500).send({
+        message: "There was a problem communicating with Cloudinary during the image upload.",
+        error: error.message
       });
     }
 
     let product = Product(req.body);
     await product.save();
 
+    console.log("✅ Product saved successfully");
     res.status(200).send({ message: "Product Added Successfully" });
   } catch (error) {
-    console.log(error);
+    console.error("❌ Add Product Error:", error);
     res.status(500).send({ message: "Something went wrong!" });
   }
 };
@@ -153,21 +160,27 @@ const getProductDataBySellerId = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const sellerId = req.sellerId;
-    console.log(sellerId);
+    console.log("🔄 Updating product for seller:", sellerId);
 
     const uploadedImage = req.file;
 
-    console.log(uploadedImage);
+    console.log("📤 Uploaded Image:", uploadedImage);
 
     if (uploadedImage) {
       try {
+        console.log("📸 Uploading new image to Cloudinary...");
         let cloudRes = await uploadImageToCloudinary(uploadedImage.buffer);
         req.body.image = cloudRes.secure_url;
+        console.log("✅ New image URL:", cloudRes.secure_url);
       } catch (error) {
-        console.log(error);
-        res.status(500).send({
-          message:
-            "There was a problem communicating with Cloudinary during the image upload.",
+        console.error("❌ Cloudinary Error Details:", {
+          message: error.message,
+          code: error.http_code,
+          error: error
+        });
+        return res.status(500).send({
+          message: "There was a problem communicating with Cloudinary during the image upload.",
+          error: error.message
         });
       }
     }
@@ -245,7 +258,7 @@ const updateProduct = async (req, res) => {
       updatedFields.shelfLife = shelfLife;
     }
 
-    console.log("Updated Fields: ", updatedFields);
+    console.log("📝 Updated Fields:", updatedFields);
 
     if (Object.keys(updatedFields).length === 0) {
       return res.status(400).send({ message: "No fields to update" });
@@ -253,12 +266,13 @@ const updateProduct = async (req, res) => {
 
     await Product.findByIdAndUpdate(req.params.productId, updatedFields);
 
+    console.log("✅ Product updated successfully");
     res.status(200).send({
       message: "Product Updated Successfully",
     });
   } catch (error) {
+    console.error("❌ Update Product Error:", error);
     res.status(500).send({ message: "Something went wrong!" });
-    console.log(error);
   }
 };
 

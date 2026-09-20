@@ -21,11 +21,16 @@ const sendMail = async (receiverEmailAddress, content, subject) => {
   };
 
   try {
-    await transporter.sendMail(message);
-    console.log("Email sent successfully");
+    const info = await transporter.sendMail(message);
+    console.log("✅ Email sent successfully");
+    console.log("📧 Message ID:", info.messageId);
+    console.log("📬 To:", userEmail);
     return true;
   } catch (error) {
-    console.log(error);
+    console.log("❌ Email sending failed:");
+    console.log("Error Code:", error.code);
+    console.log("Error Message:", error.message);
+    console.log("Full Error:", error);
     return false;
   }
 };

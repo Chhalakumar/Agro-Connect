@@ -7,17 +7,33 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Test Cloudinary configuration
+const testCloudinaryConfig = () => {
+  console.log("📸 Cloudinary Configuration:");
+  console.log("Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME || "❌ NOT SET");
+  console.log("API Key:", process.env.CLOUDINARY_API_KEY ? "✅ SET" : "❌ NOT SET");
+  console.log("API Secret:", process.env.CLOUDINARY_API_SECRET ? "✅ SET (hidden)" : "❌ NOT SET");
+  console.log("");
+};
+
 const uploadImageToCloudinary = async (fileBuffer) => {
   return new Promise((resolve, reject) => {
-    let stream = cloudinary.uploader.upload_stream({
-      folder: "AgroConnect",
-    },(error, result) => {
-      if (result) {
-        resolve(result);
-      } else {
-        reject(error);
+    let stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "AgroConnect",
+        resource_type: "auto",
+      },
+      (error, result) => {
+        if (error) {
+          console.error("❌ Cloudinary Upload Error:", error);
+          reject(error);
+        } else {
+          console.log("✅ Image uploaded successfully to Cloudinary");
+          console.log("📷 URL:", result.secure_url);
+          resolve(result);
+        }
       }
-    });
+    );
 
     streamifier.createReadStream(fileBuffer).pipe(stream);
   });
@@ -25,4 +41,5 @@ const uploadImageToCloudinary = async (fileBuffer) => {
 
 module.exports = {
   uploadImageToCloudinary,
+  testCloudinaryConfig,
 };

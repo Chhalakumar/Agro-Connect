@@ -23,7 +23,7 @@ const Verify = () => {
   const textColor = type === "seller" ? "text-green-700" : "text-blue-600";
 
   const [port, setPort] = useState(201);
-  const [timeLeft, setTimeLeft] = useState(5);
+  const [timeLeft, setTimeLeft] = useState(3);
 
   const handleVerify = async () => {
     const status = await verifyAccount(type, encodeURIComponent(token));
@@ -39,7 +39,12 @@ const Verify = () => {
     if (port === 200 || port === 409) {
       const intervalId = setInterval(() => {
         if (time === 0) {
-          navigate(`/`);
+          // Redirect based on user type
+          if (type === "seller") {
+            navigate("/sellerdashboard");
+          } else {
+            navigate("/");
+          }
           clearInterval(intervalId);
         }
         if (timeLeft > 0) {
@@ -47,8 +52,10 @@ const Verify = () => {
           setTimeLeft((prev) => prev - 1);
         }
       }, 1000);
+
+      return () => clearInterval(intervalId);
     }
-  }, [port]);
+  }, [port, navigate, type]);
 
   const message = {
     201: {
@@ -65,13 +72,11 @@ const Verify = () => {
     404: {
       message: (
         <div className="text-rose-600">
-          Invalid{" "}
-          <span className={`${textColor} font-bold`}>{type.toUpperCase()}</span>{" "}
-          token
+          Invalid verification link
         </div>
       ),
       icon: <RxCross2 className="text-rose-600 w-14 h-14" />,
-      sideMessage: "Please try to login again",
+      sideMessage: "This link is invalid or has expired. Please try to login again to receive a new verification email.",
     },
     409: {
       message: (
@@ -83,35 +88,41 @@ const Verify = () => {
       icon: <FaRegFaceSmile className="text-cyan-600 w-14 h-14 m-2" />,
       sideMessage: (
         <span>
-          Redirecting in {timeLeft} seconds <br /> or you can go back to the
-          previous tab
+          You're all set! Redirecting in {timeLeft} seconds...
         </span>
       ),
     },
     403: {
       message: (
         <div className="text-yellow-600">
-          <span className={`${textColor} font-bold`}>{type.toUpperCase()}</span>{" "}
-          token expired
+          Verification link expired
         </div>
       ),
       icon: <PiSealWarningFill className="text-yellow-600 w-14 h-14" />,
-      sideMessage: "Please try to login again",
+      sideMessage: "This verification link has expired. Please login again to receive a new verification email.",
     },
     200: {
       message: (
         <div className="text-green-600">
           <span className={`${textColor} font-bold`}>{type.toUpperCase()}</span>{" "}
-          account verified successfully
+          account verified successfully!
         </div>
       ),
       icon: <SiTicktick className="text-green-600 w-14 h-14 m-2" />,
       sideMessage: (
         <span>
-          Redirecting in {timeLeft} seconds <br /> or you can go back to the
-          previous tab
+          🎉 Welcome! You are now logged in. Redirecting in {timeLeft} seconds...
         </span>
       ),
+    },
+    500: {
+      message: (
+        <div className="text-rose-600">
+          Something went wrong
+        </div>
+      ),
+      icon: <RxCross2 className="text-rose-600 w-14 h-14" />,
+      sideMessage: "An error occurred during verification. Please try again later or contact support.",
     },
   };
 

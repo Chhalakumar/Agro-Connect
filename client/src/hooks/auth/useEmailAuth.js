@@ -38,10 +38,9 @@ const useEmailAuth = () => {
         false
       );
       return resp.status;
-      W;
     } catch (error) {
       console.log(error);
-      return error.response.status;
+      return error.response?.status || 500;
     }
   };
 
