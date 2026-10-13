@@ -6,8 +6,18 @@ const verifyAccessToken = require('../middlewares/verifyAccessToken');
 // Add Order Item
 router.post("/", verifyAccessToken, orderController.addOrder);
 
-// Retrieve Order Item according to Seller Id
-router.get("/", verifyAccessToken, orderController.showOrdersBySeller);
+// Retrieve Order Items (User or Seller based on token)
+router.get("/", verifyAccessToken, (req, res, next) => {
+  if (req.sellerId) {
+    return orderController.showOrdersBySeller(req, res, next);
+  } else if (req.userId) {
+    return orderController.showOrdersByUser(req, res, next);
+  } else {
+    return res.status(403).send({ message: "Invalid token" });
+  }
+});
 
+// Update Order Status (Seller only)
+router.patch("/:orderId/status", verifyAccessToken, orderController.updateOrderStatus);
 
 module.exports = router;

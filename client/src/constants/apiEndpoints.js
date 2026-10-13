@@ -27,6 +27,7 @@ export const ANSWER_FAQ = (faqId) => `/faqs/${faqId}`;
 export const SIGNUP = (type) => `/auth/${type}/signup`;
 export const LOGIN = (type) => `/auth/${type}/login`;
 export const VERIFY = (type, token) => `/auth/${type}/verify/${token}`;
+export const VERIFY_OTP = (type) => `/auth/${type}/verify-otp`;
 
 // Orders
 export const ORDER_PRODUCT = `/order`;
@@ -46,3 +47,7 @@ export const GRAPH = `/graph`;
 
 // Seller Orders
 export const GET_SELLER_ORDERS = `/order`;
+export const UPDATE_ORDER_STATUS = (orderId) => `/order/${orderId}/status`;
+
+// User Orders
+export const GET_USER_ORDERS = `/order`;

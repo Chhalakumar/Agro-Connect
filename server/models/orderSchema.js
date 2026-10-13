@@ -29,9 +29,17 @@ const orderSchema = new mongoose.Schema({
     required: true,
     ref: "sellers",
   },
+  status: {
+    type: String,
+    enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"],
+    default: "Pending",
+  },
   date: {
     type: Date,
     default: Date.now,
+  },
+  deliveredAt: {
+    type: Date,
   },
 });
 

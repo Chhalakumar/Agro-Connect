@@ -33,6 +33,12 @@ const sellerSchema = new mongoose.Schema({
     verificationTokenExpiry: {
         type: Date,
     },
+    verificationOTP: {
+        type: String,
+    },
+    otpExpiry: {
+        type: Date,
+    },
     date: {
         type: Date,
         default: Date.now

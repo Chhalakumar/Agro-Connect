@@ -29,13 +29,15 @@ const signup = async (req, res) => {
       return res.status(200).send({
         message: `${capitalizeFirstLetter(
           type
-        )} account created, please verify your email to login`,
+        )} account created. A 6-digit OTP has been sent to your email. Please verify to login.`,
+        email: req.body.email,
       });
     } else {
       return res.status(200).send({
         message: `${capitalizeFirstLetter(
           type
-        )} account created. However, we couldn't send the verification link. You can verify your account during login.`,
+        )} account created. However, we couldn't send the OTP. You can verify your account during login.`,
+        email: req.body.email,
       });
     }
   } catch (error) {
@@ -91,13 +93,17 @@ const login = async (req, res) => {
           return res.status(200).send({
             message: `${capitalizeFirstLetter(
               type
-            )} account not verified. We couldn't send the email. Please try again later. If this issue persists, contact the developer.`,
+            )} account not verified. We couldn't send the OTP. Please try again later. If this issue persists, contact the developer.`,
+            requiresVerification: true,
+            email: email,
           });
         } else {
           return res.status(200).send({
             message: `${capitalizeFirstLetter(
               type
-            )} account not verified. We've sent you an email, please verify your email to login`,
+            )} account not verified. We've sent a 6-digit OTP to your email. Please verify to login.`,
+            requiresVerification: true,
+            email: email,
           });
         }
       }
@@ -126,6 +132,87 @@ const login = async (req, res) => {
   } catch (error) {
     res.status(500).send({ message: "Something went wrong!" });
     console.log(error);
+  }
+};
+
+const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const type = req.params.type.toLowerCase();
+
+    if (!email || !otp) {
+      return res.status(400).send({ message: "Email and OTP are required" });
+    }
+
+    let Model = authModelSelector(type, res);
+    if (!Model) return res.status(400).send({ message: "Invalid type" });
+
+    // Find user/seller by email
+    const data = await Model.findOne({ email }).select(
+      `isVerified verificationOTP otpExpiry email name ${type === "seller" ? "brandName" : ""}`
+    );
+
+    // User not found
+    if (!data) {
+      return res.status(404).send({ 
+        message: `${capitalizeFirstLetter(type)} not found` 
+      });
+    }
+
+    // Already verified
+    if (data.isVerified) {
+      return res.status(409).send({ 
+        message: "Account already verified. You can login now." 
+      });
+    }
+
+    // Check if OTP exists
+    if (!data.verificationOTP || !data.otpExpiry) {
+      return res.status(400).send({ 
+        message: "No OTP found. Please request a new OTP by trying to login." 
+      });
+    }
+
+    // Check if OTP expired
+    const isOTPExpired = data.otpExpiry < Date.now();
+    if (isOTPExpired) {
+      return res.status(403).send({ 
+        message: "OTP has expired. Please login again to receive a new OTP." 
+      });
+    }
+
+    // Verify OTP
+    const isOTPValid = await bcrypt.compare(otp, data.verificationOTP);
+    if (!isOTPValid) {
+      return res.status(401).send({ 
+        message: "Invalid OTP. Please check and try again." 
+      });
+    }
+
+    // Mark as verified and clear OTP
+    await Model.findByIdAndUpdate(data._id, { 
+      isVerified: true,
+      verificationOTP: null,
+      otpExpiry: null,
+      verificationToken: null,
+      verificationTokenExpiry: null
+    });
+
+    // Generate access token for automatic login
+    const accessToken = generateAccessToken(type, data._id.toString());
+
+    console.log(`✅ ${capitalizeFirstLetter(type)} account verified via OTP: ${data.email}`);
+
+    return res.status(200).send({
+      message: `${capitalizeFirstLetter(type)} account verified successfully! You are now logged in.`,
+      cookies: {
+        [`${type}_access_token`]: accessToken,
+        ...(type === "seller" && { brandName: data.brandName }),
+      },
+    });
+  } catch (error) {
+    console.error("OTP verification error:", error);
+    res.status(500).send({ message: "Something went wrong during OTP verification. Please try again." });
   }
 };
 
@@ -194,6 +281,7 @@ const verifyToken = async (req, res) => {
 
 module.exports = {
   verifyToken,
+  verifyOTP,
   login,
   signup,
 };

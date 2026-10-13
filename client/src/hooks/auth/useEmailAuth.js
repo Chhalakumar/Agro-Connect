@@ -9,7 +9,12 @@ const useEmailAuth = () => {
 
   const handleSignup = async (type, formData) => {
     try {
-      await sendRequest(SIGNUP(type), "POST", formData);
+      const response = await sendRequest(SIGNUP(type), "POST", formData);
+      
+      // After successful signup, redirect to OTP verification
+      if (response?.data?.email) {
+        navigate(`/${type}/verify-otp?email=${encodeURIComponent(response.data.email)}&type=${type}`);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -17,7 +22,16 @@ const useEmailAuth = () => {
 
   const handleLogin = async (type, formData) => {
     try {
-      await sendRequest(LOGIN(type), "POST", formData);
+      const response = await sendRequest(LOGIN(type), "POST", formData);
+      
+      // Check if OTP verification is required
+      if (response?.data?.requiresVerification) {
+        // Redirect to OTP verification page with email
+        navigate(`/${type}/verify-otp?email=${encodeURIComponent(formData.email)}&type=${type}`);
+        return;
+      }
+      
+      // Normal login flow
       if (type === "seller") {
         navigate("/sellerdashboard");
       } else {

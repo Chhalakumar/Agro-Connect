@@ -15,6 +15,8 @@ import ScrollToTop from "./components/scroll/ScrollToTop";
 import Footer from "./components/footer/Footer";
 import Home from "./pages/home";
 import Verify from "./pages/verify";
+import VerifyOTP from "./pages/verify/VerifyOTP";
+import MyOrders from "./pages/orders/MyOrders";
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
             <Route exact path="/" element={<Home />} />
             <Route exact path="/account/:type" element={<LoginAndSignup />} />
             <Route exact path="/:type/verify/:token" element={<Verify />} />
+            <Route exact path="/:type/verify-otp" element={<VerifyOTP />} />
+            <Route exact path="/my-orders" element={<MyOrders />} />
             <Route
               exact
               path="/sellerdashboard"
