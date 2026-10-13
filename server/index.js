@@ -15,7 +15,27 @@ const app = express();
 
 // CORS configuration for Vercel
 app.use(cors({
-  origin: ["http://localhost:5173", "https://crop-connect-lime.vercel.app", "https://crop-connect-git-dev-deepaksgithubs-projects.vercel.app"],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      /https:\/\/.*\.vercel\.app$/, // All Vercel deployments
+    ];
+    
+    const isAllowed = allowedOrigins.some(pattern => {
+      if (pattern instanceof RegExp) return pattern.test(origin);
+      return pattern === origin;
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
