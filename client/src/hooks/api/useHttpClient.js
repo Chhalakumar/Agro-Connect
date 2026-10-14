@@ -4,7 +4,7 @@ import { notify } from "../../utils/helper/notification";
 import { notifyType } from "../../utils/helper/notificationType";
 import { useCookies } from "react-cookie";
 
-axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.baseURL = import.meta.env.VITE_AgroConnect_API || "http://localhost:8080";
 
 const useHttpClient = () => {
   const [isLoading, setIsLoading] = useState(false);
