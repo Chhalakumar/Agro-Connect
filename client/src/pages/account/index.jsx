@@ -31,15 +31,24 @@ function LoginAndSignup() {
 
   useEffect(() => {
     if (isSignInForm) {
-      setFormData((prevData) => ({
-        ...prevData,
-        email: "23312@iiitu.ac.in",
-        password: "123",
-      }));
+      // Set test credentials based on user type
+      if (type === "user") {
+        setFormData((prevData) => ({
+          ...prevData,
+          email: "rahul@example.com",
+          password: "password123",
+        }));
+      } else {
+        setFormData((prevData) => ({
+          ...prevData,
+          email: "ramesh@farm.com",
+          password: "password123",
+        }));
+      }
     } else {
       setFormData((prevData) => ({ ...prevData, email: "", password: "" }));
     }
-  }, [isSignInForm]);
+  }, [isSignInForm, type]);
 
   return (
     <section className="flex flex-col-reverse md:flex-row  md:h-screen">
@@ -138,11 +147,36 @@ function LoginAndSignup() {
             />
 
             {isSignInForm ? (
-              <div className="text-xs font-medium text-rose-600">
-                *In case you don't want to create an account, you can use the
-                following credentials to login: <br />
-                Email: 23312@iiitu.ac.in <br />
-                Password: 123
+              <div className="text-xs font-medium text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="font-semibold text-sm mb-2 text-gray-900">
+                  🔑 Test Credentials
+                </div>
+                {type === "user" ? (
+                  <>
+                    <div className="mb-1">
+                      <span className="text-gray-600">Email:</span>{" "}
+                      <span className="text-blue-600 font-medium">rahul@example.com</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Password:</span>{" "}
+                      <span className="text-blue-600 font-medium">password123</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mb-1">
+                      <span className="text-gray-600">Email:</span>{" "}
+                      <span className="text-green-600 font-medium">ramesh@farm.com</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Password:</span>{" "}
+                      <span className="text-green-600 font-medium">password123</span>
+                    </div>
+                  </>
+                )}
+                <div className="mt-2 text-xs text-gray-500 italic">
+                  * You can use these credentials to explore the platform
+                </div>
               </div>
             ) : (
               <div className="text-xs font-medium text-rose-600">
