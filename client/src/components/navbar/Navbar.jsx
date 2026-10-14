@@ -9,7 +9,7 @@ import { useCookies } from "react-cookie";
 
 function Navbar() {
   const navigate = useNavigate();
-  const [cookies, setCookie] = useCookies([
+  const [cookies, setCookie, removeCookie] = useCookies([
     "user_access_token",
     "seller_access_token",
     "brandName"
@@ -65,6 +65,12 @@ function Navbar() {
             }}
             onClick={() => {
               if (!cookies.user_access_token) {
+                // If logged in as seller, logout seller first
+                if (cookies.seller_access_token) {
+                  removeCookie("seller_access_token", { path: "/" });
+                  removeCookie("brandName", { path: "/" });
+                  notify("Seller logged out automatically", "info");
+                }
                 navigate("/account/user");
               }
             }}
@@ -112,6 +118,11 @@ function Navbar() {
             }}
             onClick={() => {
               if (!cookies.seller_access_token) {
+                // If logged in as user, logout user first
+                if (cookies.user_access_token) {
+                  removeCookie("user_access_token", { path: "/" });
+                  notify("User logged out automatically", "info");
+                }
                 navigate("/account/seller");
               }
             }}
