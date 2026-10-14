@@ -65,17 +65,9 @@ function Navbar() {
             }}
             onClick={() => {
               if (!cookies.user_access_token) {
-                // If logged in as seller, ask for confirmation first
+                // If logged in as seller, show message and don't navigate
                 if (cookies.seller_access_token) {
-                  const confirmed = window.confirm(
-                    "You are currently logged in as a seller. Do you want to logout as seller and continue to user login?"
-                  );
-                  if (confirmed) {
-                    removeCookie("seller_access_token", { path: "/" });
-                    removeCookie("brandName", { path: "/" });
-                    notify("Seller logged out", "info");
-                    navigate("/account/user");
-                  }
+                  notify("Please logout as seller first to access user account", "warning");
                   return;
                 }
                 navigate("/account/user");
@@ -125,16 +117,9 @@ function Navbar() {
             }}
             onClick={() => {
               if (!cookies.seller_access_token) {
-                // If logged in as user, ask for confirmation first
+                // If logged in as user, show message and don't navigate
                 if (cookies.user_access_token) {
-                  const confirmed = window.confirm(
-                    "You are currently logged in as a user. Do you want to logout as user and continue to seller login?"
-                  );
-                  if (confirmed) {
-                    removeCookie("user_access_token", { path: "/" });
-                    notify("User logged out", "info");
-                    navigate("/account/seller");
-                  }
+                  notify("Please logout as user first to access seller account", "warning");
                   return;
                 }
                 navigate("/account/seller");
