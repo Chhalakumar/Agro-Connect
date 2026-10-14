@@ -2,13 +2,25 @@ import React from "react";
 import useHttpClient from "../api/useHttpClient";
 import { LOGIN, SIGNUP, VERIFY } from "../../constants/apiEndpoints";
 import { useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
 
 const useEmailAuth = () => {
   const navigate = useNavigate();
   const { sendRequest, isLoading } = useHttpClient();
+  const [cookies, setCookie, removeCookie] = useCookies([
+    "user_access_token",
+    "seller_access_token",
+  ]);
 
   const handleSignup = async (type, formData) => {
     try {
+      // Clear the opposite role's token before signing up
+      if (type === "seller") {
+        removeCookie("user_access_token", { path: "/" });
+      } else {
+        removeCookie("seller_access_token", { path: "/" });
+      }
+
       const response = await sendRequest(SIGNUP(type), "POST", formData);
       
       // After successful signup, redirect to OTP verification
@@ -22,6 +34,13 @@ const useEmailAuth = () => {
 
   const handleLogin = async (type, formData) => {
     try {
+      // Clear the opposite role's token before logging in
+      if (type === "seller") {
+        removeCookie("user_access_token", { path: "/" });
+      } else {
+        removeCookie("seller_access_token", { path: "/" });
+      }
+
       const response = await sendRequest(LOGIN(type), "POST", formData);
       
       // Check if OTP verification is required

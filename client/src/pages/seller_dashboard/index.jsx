@@ -46,9 +46,23 @@ const links = [
 
 const NewSellerDashboard = () => {
   const navigate = useNavigate();
-  const [cookies, setCookie] = useCookies(["seller_access_token", "brandName"]);
+  const [cookies, setCookie, removeCookie] = useCookies(["seller_access_token", "user_access_token", "brandName"]);
 
   const [selected, setSelected] = useState(0);
+  
+  // Check if seller is logged in, redirect to login if not
+  React.useEffect(() => {
+    if (!cookies.seller_access_token) {
+      notify("Please login as seller to access dashboard", "info");
+      navigate("/account/seller");
+    }
+    
+    // If user is logged in as both user and seller, logout user
+    if (cookies.user_access_token) {
+      removeCookie("user_access_token", { path: "/" });
+      notify("You have been logged out as user", "info");
+    }
+  }, [cookies.seller_access_token, cookies.user_access_token, navigate, removeCookie]);
   
 
   return (

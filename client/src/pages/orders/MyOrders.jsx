@@ -5,12 +5,30 @@ import TableSkeleton from "../../components/skeleton/TableSkeleton";
 import EmptyStateText from "../../components/empty_state/EmptyStateText";
 import useHttpClient from "../../hooks/api/useHttpClient";
 import { GET_USER_ORDERS } from "../../constants/apiEndpoints";
+import { useCookies } from "react-cookie";
+import { notify } from "../../utils/helper/notification";
 
 function MyOrders() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { sendAuthorizedRequest } = useHttpClient();
+  const [cookies, setCookie, removeCookie] = useCookies(["user_access_token", "seller_access_token"]);
+
+  // Clear seller token if exists when accessing user pages
+  useEffect(() => {
+    if (!cookies.user_access_token) {
+      notify("Please login as user to view orders", "info");
+      navigate("/account/user");
+      return;
+    }
+    
+    if (cookies.seller_access_token) {
+      removeCookie("seller_access_token", { path: "/" });
+      removeCookie("brandName", { path: "/" });
+      notify("You have been logged out as seller", "info");
+    }
+  }, []);
 
   useEffect(() => {
     fetchUserOrders();
